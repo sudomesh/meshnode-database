@@ -1,0 +1,25 @@
+{
+  "name": "node-database",
+  "version": "0.0.1",
+  "description": "A minimal mesh node database with an admin web gui and a RESTful json API.",
+  "main": "database.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sudomesh/node-database.git"
+  },
+  "keywords": [
+    "mesh",
+    "database",
+    "node"
+  ],
+  "author": "Marc juul <juul@sudomesh.org>",
+  "license": "AGPLv3",
+  "dependencies": {
+    "express": "~3.4.6",
+    "levelup": "~0.18.2",
+    "leveldown": "~0.10.2",
+    "level-queryengine": "~0.1.3",
+    "jsonquery-engine": "~0.0.6",
+    "pairs": "~0.0.2"
+  }
+}
