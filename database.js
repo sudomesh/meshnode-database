@@ -170,7 +170,9 @@ app.delete('/nodes/:id', function(req, res){
     })
 });
 
-
+//app.get('/', function(req, res) {
+//    res.redirect('/static');
+//});
 
 var port = 3000;
 console.log("Starting on port " + port);
