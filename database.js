@@ -9,6 +9,7 @@
   License: AGPLv3
 */
 
+var uuid = require('node-uuid');
 var util = require('util');
 var path = require('path');
 var express = require('express');
@@ -94,8 +95,7 @@ function create_node(res, node, callback) {
         return;
     }
     if(!node.id) {
-        callback("node must have an id");
-        return
+        node.id = uuid.v4(); // generate random RFC4122 v4 id
     }
     validate_and_assign(node, function(err, node) {
         if(err) {
