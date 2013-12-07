@@ -6,8 +6,23 @@ var NodeDBApp = {
     },
 
     test: function() {
+
+        var o = {type: 'node', id: 42, foo: 'bar'};
+
+        $.ajax({
+            type: 'PUT',
+            url: '/nodes/42', 
+            data: {
+                data: JSON.stringify(o)
+            }, 
+            success: function(data) {
+                console.log("Updated node: " + data);
+                $('#debug').html(data);
+            }
+        });
+
         $.get('/nodes/42', function(data) {
-            console.log("Got response: " + data);
+            console.log("Retrieved node: " + data);
             $('#debug').html(data);
         });
     }

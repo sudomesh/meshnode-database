@@ -18,7 +18,6 @@ var pairs = require('pairs');
 var levelup = require('levelup');
 
 
-
 function validate_and_assign(node, callback) {
     // TODO implement me
     callback(null, node);
@@ -27,7 +26,7 @@ function validate_and_assign(node, callback) {
 function error(res, msg) {
     res.status(404).send(JSON.stringify({
         status: 'error',
-        msg: "data parameter not set"
+        msg: msg
     }));
 }
 
@@ -40,7 +39,9 @@ function respond(res, data) {
 
 function get_node(res, id, callback) { 
     var nodes = [];
-    db.query({type: 'node', id: id}).on('data', function(node) {
+    console.log("get!");
+    db.query({$and: [{type: 'node'}, {id: 42}]}).on('data', function(node) {
+        console.log('===== get data');
         nodes.push(node);
     }).on('end', function() {
         if(nodes.length <= 0) {
@@ -49,10 +50,44 @@ function get_node(res, id, callback) {
         } else {
             callback(null, nodes[0]);
         }
+    }).on('stats', function(stat) {
+        // do nothing
+    }).on('error', function(err) {
+        console.log('===== get_node error: ' + err);
+    }).on('close', function(stat) {
+        // do nothing
     });
 }
 
-// if a node exists with same id, this will overwrite it
+function update_node(res, node, callback) {
+
+    var ops = [
+        {type: 'del', key: node.id},
+        {type: 'put', key: node.id, value: node}
+    ];
+
+    db.batch(ops, function(err) {
+        if(err) {
+            callback("error updating node: " + node.id);
+            return;
+        }
+        callback(null, node);
+    });
+
+/*
+    db.batch()
+        .del(node.id)
+        .put(node)
+        .error(function(err) {
+            callback("error updating node: " + node.id);
+            return;
+        })
+        .write(function() {
+            callback(null);
+        });
+*/
+}
+
 function create_node(res, node, callback) {
     if(node.type != 'node') {
         callback("type must be 'node'");
@@ -82,12 +117,15 @@ var db = levelQuery(levelup('meshnode.db', {encoding: 'json'}));
 db.query.use(jsonqueryEngine());
 
 // Create indices
-db.ensureIndex('*', 'pairs', pairs.index);
+//db.ensureIndex('*', 'pairs', pairs.index);
 
 var app = express();
 
 // server static content from the /static dir
 app.use('/', express.static(path.join(__dirname, 'static')));
+
+// for parsing post request
+app.use(express.bodyParser());
 
 // get node
 app.get('/nodes/:id', function(req, res){
@@ -95,6 +133,7 @@ app.get('/nodes/:id', function(req, res){
         error(res, "node id must be specified in request");
         return;
     }
+    console.log("retrieving node with id: " + req.params.id);
     get_node(res, req.params.id, function(err, node) {
         if(err) {
             error(res, "error retrieving node: " + err);
@@ -106,11 +145,12 @@ app.get('/nodes/:id', function(req, res){
 
 // create node
 app.post('/nodes', function(req, res){
-    if(!req.params.data) {
+    console.log('params: ' + util.inspect(req.body));
+    if(!req.body.data) {
         error(res, "data parameter not set or empty");
         return;
     }
-    var data = JSON.parse(req.params.data);
+    var data = JSON.parse(req.body.data);
     if(!data) {
         error(res, "data parameter is not valid json");
         return;
@@ -131,27 +171,21 @@ app.put('/nodes/:id', function(req, res){
         error(res, "node id must be specified in request");
         return;
     }
-    if(!req.params.data) {
+    if(!req.body.data) {
         error(res, "data parameter not set or empty");
         return;
     }
-    var data = JSON.parse(req.params.data);
+    var data = JSON.parse(req.body.data);
     if(!data) {
         error(res, "data parameter is not valid json");
         return;
     }
-    get_node(res, req.params.id, function(err, node) {
+    update_node(res, data, function(err, node) {
         if(err) {
             error(res, "error retrieving node: " + err);
             return;
         }
-        create_node(res, data, function(err, node) {
-            if(err) {
-                error(res, "error updating node with id '"+data.id+"': " + err);
-                return;
-            }
-            respond(res, node);
-        });
+        respond(res, node);
     });
 });
 
@@ -169,10 +203,6 @@ app.delete('/nodes/:id', function(req, res){
         respond(res);
     })
 });
-
-//app.get('/', function(req, res) {
-//    res.redirect('/static');
-//});
 
 var port = 3000;
 console.log("Starting on port " + port);
