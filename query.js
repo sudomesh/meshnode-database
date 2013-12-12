@@ -71,11 +71,11 @@ var Query = function(db) {
             if(node.type != 'node') {
                 return;
             }
-            if(!node.subnet) {
+            if(!node.mesh_subnet_ipv4) {
                 return;
             }
             
-            emit(this.maxIP - this.subnetToNumber(node.subnet));
+            emit(this.maxIP - this.subnetToNumber(node.mesh_subnet_ipv4));
         }.bind(this), callback);
     };
 
@@ -113,7 +113,7 @@ var Query = function(db) {
 
     this.subnetIncrement = function(subnet, nocheck) {
         var block = new Netmask(subnet);
-        block = block.next()
+        block = block.next();
         if(nocheck) {
             return block;
         }
@@ -156,8 +156,9 @@ var Query = function(db) {
             if(!node) {
                 subnet = this.subnet.base+'/24';
             } else {
-                subnet = node.subnet;
+                subnet = node.mesh_subnet_ipv4 + '/' + node.mesh_subnet_ipv4_bitmask;
             }
+
             // find next available subnet
             subnet = this.subnetIncrement(subnet);
             if(!subnet) {
@@ -168,18 +169,50 @@ var Query = function(db) {
         }.bind(this));
     };
 
-    this.validateAndAssign = function(node, callback) {
+
+    // dnsmasq expects the dhcp range start
+    // to be an integer counting from the start of
+    // the subnet, so we have to calculate it
+    this.calcDHCPRangeStart = function(targetSubnet) {
+        // reserve first 50 IPs for static assignment
+        var offset = 50; // TODO get from config file
+        var cur = new Netmask(this.subnet.base+'/24');
+        while(!targetSubnet.contains(cur.toString())) {
+            cur = cur.next();
+            offset += 256;
+        }
+        return offset;
+    };
+
+    // assign unique subnet, uuid, etc
+    this.assign = function(node, callback) {
         this.getNextSubnet(function(err, subnet) {
             if(err) {
                 callback(err);
                 return;
             }
-            node.subnet = subnet;
-            var block = new Netmask(subnet);
-            node.ip = block.first; // first ip in block
-            node.netmask = block.mask;
+
+
+            if(!node.mesh_subnet_ipv4) {
+                var block = new Netmask(subnet);
+                node.mesh_subnet_ipv4 = block.base;
+                node.mesh_subnet_ipv4_mask = block.mask;
+                node.mesh_subnet_ipv4_bitmask = block.bitmask;
+
+                // first ip in block
+                node.mesh_addr_ipv4 = block.first;
+
+                // Calculate DHCP range start for dnsmasq
+                node.mesh_dhcp_range_start = this.calcDHCPRangeStart(subnet);
+            }
+
+            if(!node.id) {
+                // generate random RFC 4122 v4 id
+                node.id = uuid.v4(); 
+            }
+
             callback(null, node);
-        });
+        }.bind(this));
 
     };
 
@@ -225,15 +258,17 @@ var Query = function(db) {
             callback("type must be 'node'");
             return;
         }
-        if(!node.id) {
-            // generate random RFC 4122 v4 id
-            node.id = uuid.v4(); 
-        }
-        this.validateAndAssign(node, function(err, node) {
+        this.assign(node, function(err, node) {
             if(err) {
-                callback("validate or assign error: " + err);
+                callback("assign error: " + err);
                 return;
             }
+            if(!node.id) {
+                callback("Cannot create node without an id");
+                return;
+            }
+
+
             this.db.put(node.id, node, function(err) {
                 if(err) {
                     callback("error creating node in db: " + err);
