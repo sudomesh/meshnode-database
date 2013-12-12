@@ -15,6 +15,7 @@
   "author": "Marc juul <juul@sudomesh.org>",
   "license": "AGPLv3",
   "dependencies": {
+    "netmask": "~0.0.2",
     "node-uuid": "~1.4.1",
     "express": "~3.4.6",
     "levelup": "~0.18.2",
