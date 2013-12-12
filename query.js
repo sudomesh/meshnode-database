@@ -67,14 +67,17 @@ var Query = function(db) {
     };
 
     this.ensureSubnetIndex = function(callback) {
-        this.db.ensureIndex('subnet_highest_first', 'property', function(key, node, emit) {    
+        this.db.ensureIndex('subnet_highest_first', 'property', function(key, node, emit) {
+            if(!node) {
+                return;
+            }
             if(node.type != 'node') {
                 return;
             }
             if(!node.mesh_subnet_ipv4) {
                 return;
             }
-            
+
             emit(this.maxIP - this.subnetToNumber(node.mesh_subnet_ipv4));
         }.bind(this), callback);
     };
@@ -231,10 +234,29 @@ var Query = function(db) {
         });
     };
 
+    this.getNodes = function(callback) {
+        var nodes = [];
+        this.db.createReadStream()
+            .on('data', function(data) {
+                var node = data.value;
+                if(node.type != 'node') {
+                    return;
+                }
+                nodes.push(node);
+            }.bind(this))
+            .on('error', function(err) {
+                callback(err);
+            }.bind(this))
+            .on('end', function() {
+                callback(null, nodes);
+            });
+    };
+
     this.getNode = function(id, callback) {
 
         var nodes = [];
         this.db.query({$and: [{type: 'node'}, {id: id}]}).on('data', function(node) {
+
             nodes.push(node);
         }.bind(this)).on('end', function() {
             if(nodes.length <= 0) {

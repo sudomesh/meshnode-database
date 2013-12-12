@@ -47,14 +47,27 @@ app.use('/', express.static(path.join(__dirname, 'static')));
 // for parsing post request
 app.use(express.bodyParser());
 
-// get node
+// get all nodes
+app.get('/nodes', function(req, res){
+    console.log("retrieving all nodes");
+    q.getNodes(function(err, nodes) {
+        if(err) {
+            error(res, "error retrieving nodes: " + err);
+            return;
+        }
+        respond(res, nodes);
+    });
+});
+
+
+// get node by id
 app.get('/nodes/:id', function(req, res){
     if(!req.params.id) {
         error(res, "node id must be specified in request");
         return;
     }
     console.log("retrieving node with id: " + req.params.id);
-    q.getnode(req.params.id, function(err, node) {
+    q.getNode(req.params.id, function(err, node) {
         if(err) {
             error(res, "error retrieving node: " + err);
             return;
@@ -62,6 +75,7 @@ app.get('/nodes/:id', function(req, res){
         respond(res, node);
     });
 });
+
 
 // create node
 app.post('/nodes', function(req, res){

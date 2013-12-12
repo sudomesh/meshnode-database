@@ -5,6 +5,8 @@
 
     <!-- external js libraries -->
     <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/jquery.cookie.js"></script>
+    <script type="text/javascript" src="js/underscore.js"></script>
     <script type="text/javascript" src="js/json2.js"></script>
 
     <!-- js specific to this web app -->
@@ -13,16 +15,28 @@
     <!-- css specific to this web app -->
     <link rel="stylesheet" href="css/node-db.css"/>
 
+    <!-- templates -->
+    <script id="table_template" type="template/html">
+      <table cellspacing='4' cellpadding='0' border='1'>
+        <tr>
+          <th>UUID</th>
+          <th>Subnet</th>
+        </tr>
+        <% console.log(nodes) %>
+        <% _.each(nodes, function(node) { %>
+          <tr>
+            <td><%= node.id %></td>
+            <td><%= node.mesh_subnet_ipv4 %>/<%= node.mesh_subnet_ipv4_bitmask %></td>
+          </tr>
+        <% }); %>
+      </table>
+    </script>
   </head>
   <body>
     <h1>node database</h1>
-
-    <p>This is a work in progress</p>
-
-    <p>
-      <button onclick="NodeDBApp.test()">Test API</button>
-    </p>
-
-    <p>Output: <span id='debug'></span></p>
+    <div id="container">
+      <p>This is a work in progress.</p>
+      <p>Retrieving node list. Please stand by.</p>
+    </div>
   </body>
 </html>
