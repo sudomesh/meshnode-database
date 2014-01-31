@@ -198,15 +198,15 @@ var Query = function(db) {
 
             if(!node.mesh_subnet_ipv4) {
                 var block = new Netmask(subnet);
-                node.mesh_subnet_ipv4 = block.base;
-                node.mesh_subnet_ipv4_mask = block.mask;
-                node.mesh_subnet_ipv4_bitmask = block.bitmask;
+                node.mesh_subnet_ipv4 = String(block.base);
+                node.mesh_subnet_ipv4_mask = String(block.mask);
+                node.mesh_subnet_ipv4_bitmask = String(block.bitmask);
 
                 // first ip in block
-                node.mesh_addr_ipv4 = block.first;
+                node.mesh_addr_ipv4 = String(block.first);
 
                 // Calculate DHCP range start for dnsmasq
-                node.mesh_dhcp_range_start = this.calcDHCPRangeStart(subnet);
+                node.mesh_dhcp_range_start = String(this.calcDHCPRangeStart(subnet));
             }
 
             if(!node.id) {

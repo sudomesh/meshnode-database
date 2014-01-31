@@ -1,4 +1,4 @@
-#!/usr/bin/node
+#!/usr/bin/env node
 
 /*
   This is a simply database with a REST HTTP JSON API
