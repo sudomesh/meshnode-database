@@ -41,7 +41,7 @@ function respond(res, data) {
 
 var app = express();
 
-// server static content from the /static dir
+// serve static content from the /static dir
 app.use('/', express.static(path.join(__dirname, 'static')));
 
 // for parsing post request
