@@ -20,7 +20,15 @@ npm install
 # Running #
 
 ```
-./database.js
+npm start
+```
+
+or
+
+```
+cd node-database/
+npm link # puts `sudomeshdb` into your path
+sudomeshdb
 ```
 
 # License #
