@@ -163,7 +163,8 @@ q.init(true, function(err) {
 //    createFakeData(q);
 
     var port = 3000;
-    console.log("Starting on port " + port);
-    app.listen(port);
+    var ip = '127.0.0.1';
+    console.log("Starting on " + ip + ":" + port);
+    app.listen(port, ip);
 });
 
