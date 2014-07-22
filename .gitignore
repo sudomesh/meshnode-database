@@ -2,3 +2,4 @@
 \#*\#
 meshnode.db/**
 node_modules/**
+config.js

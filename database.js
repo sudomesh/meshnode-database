@@ -21,6 +21,9 @@ var levelup = require('levelup');
 // internal requires
 var query = require('./query.js');
 
+// Configuration
+var config = require('./config.js');
+
 
 function error(res, msg) {
     res.status(404).send(JSON.stringify({
@@ -46,6 +49,16 @@ app.use('/', express.static(path.join(__dirname, 'static')));
 
 // for parsing post request
 app.use(express.bodyParser());
+app.use(express.basicAuth(function(user, pass, callback) {
+    var i;
+    for(i=0; i < config.acl.length; i++) {
+        if(user === config.acl[i].username && pass == config.acl[i].password) {
+            callback(null, true);
+            return;
+        }
+    }
+    callback(null, false);
+}));
 
 // get all nodes
 app.get('/nodes', function(req, res){

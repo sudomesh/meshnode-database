@@ -1,0 +1,10 @@
+
+module.exports = {
+  port: 3000,
+  acl: [ // access control list
+      {
+        username: "admin",
+        password: "praisebob"
+      }
+  ]
+};
