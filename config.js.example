@@ -1,10 +1,18 @@
 
 module.exports = {
+  salt: 'CHANGEME', // you should change this to a randomly generated salt
+  hostname: 'localhost',
   port: 3000,
+  access_control: true,
   acl: [ // access control list
       {
         username: "admin",
-        password: "praisebob"
+        password: "qCiXNxN4tUzQJgNWQjvQoC5NI0Y=", // password is "praiseeris"
+        role: "admin",
+      }, {
+        username: "deployer",
+        password: "F5OYsuFWfH5WhLDijBuVX2fFXlU=", // password is "praisebob"
+        role: "deployer",
       }
   ]
 };

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /*
-  This is a simply database with a REST HTTP JSON API
+  This is a simply database with a HTTPS JSON API
   for registering new nodes in the sudo mesh network
   and assigning unique values such as IP addresses.
 
@@ -12,6 +12,7 @@
 // external libraries
 var util = require('util');
 var path = require('path');
+var crypto = require('crypto');
 var express = require('express');
 var levelQuery = require('level-queryengine');
 var jsonqueryEngine = require('jsonquery-engine');
@@ -21,9 +22,8 @@ var levelup = require('levelup');
 // internal requires
 var query = require('./query.js');
 
-// Configuration
+// configuration
 var config = require('./config.js');
-
 
 function error(res, msg) {
     res.status(404).send(JSON.stringify({
@@ -49,19 +49,46 @@ app.use('/', express.static(path.join(__dirname, 'static')));
 
 // for parsing post request
 app.use(express.bodyParser());
-app.use(express.basicAuth(function(user, pass, callback) {
+
+function hashPass(pass) {
+    var hash = crypto.createHash('sha1');
+    hash.update(config.salt);
+    hash.update(pass);
+    return hash.digest('base64');
+}
+
+function checkAuth(user, pass, minRole, callback) {
     var i;
     for(i=0; i < config.acl.length; i++) {
-        if(user === config.acl[i].username && pass == config.acl[i].password) {
-            callback(null, true);
-            return;
+        if(user === config.acl[i].username && hashPass(pass) == config.acl[i].password) {
+            if(minRole === 'admin' && config.acl[i].role === 'admin') {
+                callback(null, true);
+                return;  
+            }
+            if(minRole === 'deployer' && (config.acl[i].role === 'deployer') || (config.acl[i].role === 'admin')) {
+                callback(null, true);
+                return;
+            }
         }
     }
     callback(null, false);
-}));
+}
+
+var adminAuth;
+var deployterAuth;
+
+if(config.access_control) {
+    adminAuth = express.basicAuth(function(user, pass, callback) {
+        checkAuth(user, pass, 'admin', callback);
+    });
+    
+     deployerAuth = express.basicAuth(function(user, pass, callback) {
+        checkAuth(user, pass, 'deployer', callback);
+    });
+}
 
 // get all nodes
-app.get('/nodes', function(req, res){
+app.get('/nodes', adminAuth, function(req, res){
     console.log("retrieving all nodes");
     q.getNodes(function(err, nodes) {
         if(err) {
@@ -74,7 +101,7 @@ app.get('/nodes', function(req, res){
 
 
 // get node by id
-app.get('/nodes/:id', function(req, res){
+app.get('/nodes/:id', adminAuth, function(req, res){
     if(!req.params.id) {
         error(res, "node id must be specified in request");
         return;
@@ -91,7 +118,7 @@ app.get('/nodes/:id', function(req, res){
 
 
 // create node
-app.post('/nodes', function(req, res){
+app.post('/nodes', deployerAuth, function(req, res){
     console.log('params: ' + util.inspect(req.body));
     if(!req.body.data) {
         error(res, "data parameter not set or empty");
@@ -113,7 +140,7 @@ app.post('/nodes', function(req, res){
 
 
 // update node
-app.put('/nodes/:id', function(req, res){
+app.put('/nodes/:id', adminAuth, function(req, res){
     if(!req.params.id) {
         error(res, "node id must be specified in request");
         return;
@@ -137,7 +164,7 @@ app.put('/nodes/:id', function(req, res){
 });
 
 // get node
-app.delete('/nodes/:id', function(req, res){
+app.delete('/nodes/:id', adminAuth, function(req, res){
     if(!req.params.id) {
         error(res, "node id must be specified in request");
         return;
@@ -173,11 +200,11 @@ q.init(true, function(err) {
         return;
     }
 
-//    createFakeData(q);
+    var port = config.port;
+    var hostname = config.hostname || 'localhost';
 
-    var port = 3000;
-    var ip = '127.0.0.1';
-    console.log("Starting on " + ip + ":" + port);
-    app.listen(port, ip);
+    console.log("Starting on " + hostname + ":" + port);
+
+    app.listen(port, hostname);
 });
 
