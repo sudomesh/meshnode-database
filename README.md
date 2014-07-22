@@ -4,7 +4,14 @@ This is an minimal database for assigning and tracking information about mesh no
 
 # Usage
 
-Copy config.js.example to config.js and edit to suit your needs. There are two levels of access control. 
+Copy config.js.example to config.js and edit to suit your needs. There are two levels of access control: 
+
+*admin: Full access.
+*deployer: Can only create new nodes.
+
+# Security
+
+You should only ever run this through a reverse proxy with SSL enabled. 
 
 # Prerequisites 
 
