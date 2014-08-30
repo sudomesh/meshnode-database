@@ -74,8 +74,8 @@ function checkAuth(user, pass, minRole, callback) {
     callback(null, false);
 }
 
-var adminAuth;
-var deployterAuth;
+var adminAuth = function(req, res, next) {next()};
+var deployerAuth = function(req, res, next) {next()};
 
 if(config.access_control) {
     adminAuth = express.basicAuth(function(user, pass, callback) {
