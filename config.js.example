@@ -3,6 +3,11 @@ module.exports = {
   salt: 'CHANGEME', // you should change this to a randomly generated salt
   hostname: 'localhost',
   port: 3000,
+
+  subnet: '172.17.0.0/16', // the mesh subnet
+  subnets_reserved: ['172.17.0.0/24'], // do not assign subnets in this range
+  per_node_bitmask: 26, // bitmask for per-node subnet
+  
   access_control: true,
   acl: [ // access control list
       {

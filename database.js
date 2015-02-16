@@ -82,7 +82,7 @@ if(config.access_control) {
         checkAuth(user, pass, 'admin', callback);
     });
     
-     deployerAuth = express.basicAuth(function(user, pass, callback) {
+    deployerAuth = express.basicAuth(function(user, pass, callback) {
         checkAuth(user, pass, 'deployer', callback);
     });
 }
@@ -119,7 +119,7 @@ app.get('/nodes/:id', adminAuth, function(req, res){
 
 // create node
 app.post('/nodes', deployerAuth, function(req, res){
-    console.log('params: ' + util.inspect(req.body));
+    console.log('Creating node');
     if(!req.body.data) {
         error(res, "data parameter not set or empty");
         return;
@@ -192,7 +192,7 @@ function createFakeData(q) {
 var db = levelQuery(levelup('meshnode.db', {encoding: 'json'}));
 db.query.use(jsonqueryEngine());
 
-var q = new query.Query(db);
+var q = new query.Query(db, config);
 
 q.init(true, function(err) {
     if(err) {

@@ -10,14 +10,16 @@ Netmask.prototype.toString = function() {
     return this.base+'/'+this.bitmask;
 };
 
-var Query = function(db) {
+var Query = function(db, config) {
 
-    // TODO load this from config file
-    this.subnet = new Netmask('10.0.0.0/8');
-    this.subnets_reserved = [
-        new Netmask('10.0.0.0/24'), 
-        new Netmask('10.42.0.0/24')
-    ];
+    this.config = config || {};
+    this.subnet = new Netmask(config.subnet);
+    this.subnets_reserved = [];
+    var i;
+    for(i=0; i < config.subnets_reserved.length; i++) {
+        this.subnets_reserved.push(new Netmask(config.subnets_reserved[i]));
+    }
+
 
     this.indexes = ['subnet_highest_first'];
 
@@ -157,9 +159,9 @@ var Query = function(db) {
             }
             var subnet;
             if(!node) {
-                subnet = this.subnet.base+'/24';
+                subnet = this.subnet.base + '/' + this.config.per_node_bitmask;
             } else {
-                subnet = node.mesh_subnet_ipv4 + '/' + node.mesh_subnet_ipv4_bitmask;
+                subnet = node.mesh_subnet_ipv4 + '/' + this.config.per_node_bitmask;
             }
 
             // find next available subnet
@@ -172,17 +174,21 @@ var Query = function(db) {
         }.bind(this));
     };
 
+    this.numIPsForBitmask = function(bitmask) {
+        var remainder = 32 - parseInt(bitmask);
+        return Math.pow(2, remainder);
+    };
+
 
     // dnsmasq expects the dhcp range start
     // to be an integer counting from the start of
     // the subnet, so we have to calculate it
     this.calcDHCPRangeStart = function(targetSubnet) {
-        // reserve first 50 IPs for static assignment
-        var offset = 50; // TODO get from config file
-        var cur = new Netmask(this.subnet.base+'/24');
+        var offset = 0;
+        var cur = new Netmask(this.subnet.base+'/'+this.config.per_node_bitmask);
         while(!targetSubnet.contains(cur.toString())) {
             cur = cur.next();
-            offset += 256;
+            offset += this.numIPsForBitmask(this.config.per_node_bitmask);
         }
         return offset;
     };
@@ -195,13 +201,11 @@ var Query = function(db) {
                 return;
             }
 
-
             if(!node.mesh_subnet_ipv4) {
                 var block = new Netmask(subnet);
                 node.mesh_subnet_ipv4 = String(block.base);
                 node.mesh_subnet_ipv4_mask = String(block.mask);
                 node.mesh_subnet_ipv4_bitmask = String(block.bitmask);
-
                 // first ip in block
                 node.mesh_addr_ipv4 = String(block.first);
 
@@ -281,6 +285,7 @@ var Query = function(db) {
             return;
         }
         this.assign(node, function(err, node) {
+
             if(err) {
                 callback("assign error: " + err);
                 return;
@@ -289,7 +294,6 @@ var Query = function(db) {
                 callback("Cannot create node without an id");
                 return;
             }
-
 
             this.db.put(node.id, node, function(err) {
                 if(err) {
