@@ -232,8 +232,8 @@ var Query = function(db, config) {
                 node.mesh_subnet_ipv4_bitmask = String(meshBlock.bitmask);
             }
 
-            if(!node.adhock_addr_ipv4) {
-                node.adhock_addr_ipv4 = String(block.first);
+            if(!node.adhoc_addr_ipv4) {
+                node.adhoc_addr_ipv4 = String(block.first);
                 node.adhoc_subnet_ipv4 = String(meshBlock.base);
                 node.adhoc_subnet_ipv4_mask = String(meshBlock.mask);
                 node.adhoc_subnet_ipv4_bitmask = String(meshBlock.bitmask);
