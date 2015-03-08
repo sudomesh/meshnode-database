@@ -224,7 +224,6 @@ var Query = function(db, config) {
             var meshBlock = new Netmask(this.config.subnet);
 
             if(!node.mesh_addr_ipv4) {
-
                 // first ip in block
                 node.mesh_addr_ipv4 = String(block.first);
                 node.mesh_subnet_ipv4 = String(meshBlock.base);
@@ -234,23 +233,21 @@ var Query = function(db, config) {
 
             if(!node.adhoc_addr_ipv4) {
                 node.adhoc_addr_ipv4 = String(block.first);
-                node.adhoc_subnet_ipv4 = String(meshBlock.base);
-                node.adhoc_subnet_ipv4_mask = String(meshBlock.mask);
-                node.adhoc_subnet_ipv4_bitmask = String(meshBlock.bitmask);
+                node.adhoc_subnet_ipv4_mask = '255.255.255.255';
+                node.adhoc_subnet_ipv4_bitmask = '32';
             }
 
             if(!node.tun_addr_ipv4) {
                 node.tun_addr_ipv4 = String(block.first);
-                node.tun_subnet_ipv4 = String(meshBlock.base);
-                node.tun_subnet_ipv4_mask = String(meshBlock.mask);
-                node.tun_subnet_ipv4_bitmask = String(meshBlock.bitmask);
+                node.tun_subnet_ipv4_mask = '255.255.255.255';
+                node.tun_subnet_ipv4_bitmask = '32';
             }
 
             if(!node.open_addr_ipv4) {
                 node.open_addr_ipv4 = String(block.first);
-                node.open_subnet_ipv4 = String(meshBlock.base);
-                node.open_subnet_ipv4_mask = String(meshBlock.mask);
-                node.open_subnet_ipv4_bitmask = String(meshBlock.bitmask);
+                node.open_subnet_ipv4 = String(block.base);
+                node.open_subnet_ipv4_mask = String(block.mask);
+                node.open_subnet_ipv4_bitmask = String(block.bitmask);
             }
 
             if(!node.open_dhcp_range_start) {
