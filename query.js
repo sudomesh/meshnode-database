@@ -186,10 +186,29 @@ var Query = function(db, config) {
     this.calcDHCPRangeStart = function(targetSubnet) {
         var offset = 0;
         var cur = new Netmask(this.subnet.base+'/'+this.config.per_node_bitmask);
+
+        // Calculate offset to the per-node subnet within the larger mesh subnet
         while(!targetSubnet.contains(cur.toString())) {
             cur = cur.next();
+
+            // check if we're completely out of the mesh subnet
+            if(!this.subnet.contains(cur.toString())) {
+                return -1;
+            }
             offset += this.numIPsForBitmask(this.config.per_node_bitmask);
         }
+        
+        // Now we have the offset to the network address of the per-node subnet.
+        // If the mesh subnet is e.g. 100.64.0.0/16 
+        // and the per-node subnet is e.g. 100.64.2.0/24
+        // Then the current offset would make the DHCP server hand out addresses
+        // starting at 100.64.2.0 
+        // But the node's own address will be 10.64.2.1
+        // and we want it to hand out addresses starting at 10.64.2.2
+        // so we increment by two.
+
+        offset += 2;
+
         return offset;
     };
 
@@ -201,16 +220,57 @@ var Query = function(db, config) {
                 return;
             }
 
-            if(!node.mesh_subnet_ipv4) {
-                var block = new Netmask(subnet);
-                node.mesh_subnet_ipv4 = String(block.base);
-                node.mesh_subnet_ipv4_mask = String(block.mask);
-                node.mesh_subnet_ipv4_bitmask = String(block.bitmask);
+            var block = new Netmask(subnet);
+            var meshBlock = new Netmask(this.config.subnet);
+
+            if(!node.mesh_addr_ipv4) {
+
                 // first ip in block
                 node.mesh_addr_ipv4 = String(block.first);
+                node.mesh_subnet_ipv4 = String(meshBlock.base);
+                node.mesh_subnet_ipv4_mask = String(meshBlock.mask);
+                node.mesh_subnet_ipv4_bitmask = String(meshBlock.bitmask);
+            }
 
+            if(!node.adhock_addr_ipv4) {
+                node.adhock_addr_ipv4 = String(block.first);
+                node.adhoc_subnet_ipv4 = String(meshBlock.base);
+                node.adhoc_subnet_ipv4_mask = String(meshBlock.mask);
+                node.adhoc_subnet_ipv4_bitmask = String(meshBlock.bitmask);
+            }
+
+            if(!node.tun_addr_ipv4) {
+                node.tun_addr_ipv4 = String(block.first);
+                node.tun_subnet_ipv4 = String(meshBlock.base);
+                node.tun_subnet_ipv4_mask = String(meshBlock.mask);
+                node.tun_subnet_ipv4_bitmask = String(meshBlock.bitmask);
+            }
+
+            if(!node.open_addr_ipv4) {
+                node.open_addr_ipv4 = String(block.first);
+                node.open_subnet_ipv4 = String(meshBlock.base);
+                node.open_subnet_ipv4_mask = String(meshBlock.mask);
+                node.open_subnet_ipv4_bitmask = String(meshBlock.bitmask);
+            }
+
+            if(!node.open_dhcp_range_start) {
                 // Calculate DHCP range start for dnsmasq
-                node.mesh_dhcp_range_start = String(this.calcDHCPRangeStart(subnet));
+                var dhcpRangeStart = this.calcDHCPRangeStart(subnet)
+                if(dhcpRangeStart < 0) {
+                    return callback("Could not calculate DHCP range start index");
+                }
+
+                node.open_dhcp_range_start = String(dhcpRangeStart);
+            }
+
+            if(!node.mesh_addr_ipv6) {
+                var numbers = [];
+                var i = 4;
+                while(i--) {
+                    // generate (up to) four-digit hex strings
+                    numbers.push(Math.floor(Math.random() * 65536).toString(16));
+                }
+                node.mesh_addr_ipv6 = this.config.ipv6_prefix + numbers.join(':');
             }
 
             if(!node.id) {
@@ -280,12 +340,13 @@ var Query = function(db, config) {
     },
     
     this.createNode = function(node, callback) {
+
         if(node.type != 'node') {
             callback("type must be 'node'");
             return;
         }
-        this.assign(node, function(err, node) {
 
+        this.assign(node, function(err, node) {
             if(err) {
                 callback("assign error: " + err);
                 return;

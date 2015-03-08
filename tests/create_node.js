@@ -4,7 +4,7 @@ var util = require('util');
 
 var request = require('request');
 
-var config = require('./config.js');
+var config = require('../config.js');
 
 
 var createNodeInDB = function(callback) {

@@ -4,15 +4,17 @@ module.exports = {
   hostname: 'localhost',
   port: 3000,
 
-  subnet: '172.17.0.0/16', // the mesh subnet
-  subnets_reserved: ['172.17.0.0/24'], // do not assign subnets in this range
+  subnet: '100.64.0.0/10', // the mesh subnet
+  subnets_reserved: ['100.64.0.0/24', '100.64.1.0/24'], // do not assign subnets in this range
   per_node_bitmask: 26, // bitmask for per-node subnet
-  
+
+  ipv6_prefix: 'a237:473:2389:a1::', // prefix for IPv6 /64
+
   access_control: true,
   acl: [ // access control list
       {
         username: "admin",
-        password: "qCiXNxN4tUzQJgNWQjvQoC5NI0Y=", // password is "praiseeris"
+        password: "DOzaqqKfojaPdoZ+nsLfnZiGQg8=",
         role: "admin",
       }, {
         username: "deployer",
