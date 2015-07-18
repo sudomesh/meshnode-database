@@ -295,8 +295,31 @@ var Query = function(db, config) {
         });
     };
 
+    this.addTestNode = function(callback) {
+        var w = this.db.createWriteStream({
+            key: "foobar",
+            lol: 'wut'
+        }, function(err, key) {
+            if(err) return callback(err);
+            callback(null, key);
+        });
+        w.write("some content\n")
+        w.end();
+    };
+
     this.getNodes = function(callback) {
         var nodes = [];
+        this.db.list()
+            .on('data', function(data) {
+                nodes.push(data.meta);
+            }.bind(this))
+            .on('error', function(err) {
+                callback(err);
+            }.bind(this))
+            .on('end', function() {
+                callback(null, nodes);
+            });
+/*
         this.db.createReadStream()
             .on('data', function(data) {
                 var node = data.value;
@@ -311,6 +334,7 @@ var Query = function(db, config) {
             .on('end', function() {
                 callback(null, nodes);
             });
+*/
     };
 
     this.getNode = function(id, callback) {
@@ -364,6 +388,6 @@ var Query = function(db, config) {
     }; 
 };
 
-module.exports = {
-    Query: Query
+module.exports = function(db, config) {
+    return new Query(db, config);
 };
