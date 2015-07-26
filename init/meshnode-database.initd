@@ -1,0 +1,69 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          meshnode-database
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: psy running meshnode-database
+# Description:       meshnode-database is the database of all deployed sudomesh nodes
+### END INIT INFO
+#
+
+HOME=/root
+
+# Source function library.
+. /lib/lsb/init-functions
+
+logFile="/var/log/meshnode-database.log"
+appName="meshnode-database"
+command="/usr/local/bin/node"
+workingDir="/home/juul/meshnode-database"
+nodeApp="${workingDir}/database.js"
+runnerApp="/bin/psy"
+
+start() {
+  echo "Starting $appName"
+
+  cd $workingDir
+  $runnerApp start --logfile $logFile --name $appName -- node $nodeApp
+  RETVAL=$?
+}
+
+restart() {
+	echo -n "Restarting $appName"
+	$runnerApp restart $appName
+	RETVAL=$?
+}
+
+stop() {
+  echo -n "Shutting down $appName"
+  $runnerApp stop $appName
+  RETVAL=$?
+}
+
+status() {
+  echo -n "Status $appName"
+  $runnerApp list
+  RETVAL=$?
+}
+
+case "$1" in
+   start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+   status)
+        status
+       ;;
+   restart)
+   	restart
+        ;;
+	*)
+       echo "Usage:  {start|stop|status|restart}"
+       exit 1
+        ;;
+esac
+exit $RETVAL
