@@ -140,7 +140,7 @@ app.post('/nodes', deployerAuth, function(req, res){
 
 
 // update node
-app.put('/nodes/:id', adminAuth, function(req, res){
+app.put('/nodes/:id', deployerAuth, function(req, res){
     if(!req.params.id) {
         error(res, "node id must be specified in request");
         return;

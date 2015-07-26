@@ -80,7 +80,7 @@ var Query = function(db, config) {
                 return;
             }
 
-            emit(this.maxIP - this.subnetToNumber(node.mesh_subnet_ipv4));
+            emit(this.maxIP - this.subnetToNumber(node.open_subnet_ipv4));
         }.bind(this), callback);
     };
 
@@ -118,6 +118,7 @@ var Query = function(db, config) {
 
     this.subnetIncrement = function(subnet, nocheck) {
         var block = new Netmask(subnet);
+
         block = block.next();
         if(nocheck) {
             return block;
@@ -131,6 +132,7 @@ var Query = function(db, config) {
                 block = block.next();
                 continue;
             }
+
             return block.toString();
         }
     };
@@ -138,7 +140,7 @@ var Query = function(db, config) {
     this.getNodeWithHighestSubnet = function(callback) {
         var keys = [];
         this.db.indexes['subnet_highest_first'].createIndexStream({
-            limit: 1
+            limit: 10
         }).on('data', function(data) {
             keys.push(data.value);
         }.bind(this)).on('close', function(data) {
@@ -157,13 +159,13 @@ var Query = function(db, config) {
                 callback(err);
                 return;
             }
+
             var subnet;
             if(!node) {
                 subnet = this.subnet.base + '/' + this.config.per_node_bitmask;
             } else {
-                subnet = node.mesh_subnet_ipv4 + '/' + this.config.per_node_bitmask;
+                subnet = node.open_subnet_ipv4 + '/' + this.config.per_node_bitmask;
             }
-
             // find next available subnet
             subnet = this.subnetIncrement(subnet);
             if(!subnet) {
@@ -184,6 +186,7 @@ var Query = function(db, config) {
     // to be an integer counting from the start of
     // the subnet, so we have to calculate it
     this.calcDHCPRangeStart = function(targetSubnet) {
+
         var offset = 0;
         var cur = new Netmask(this.subnet.base+'/'+this.config.per_node_bitmask);
 
@@ -252,7 +255,7 @@ var Query = function(db, config) {
 
             if(!node.open_dhcp_range_start) {
                 // Calculate DHCP range start for dnsmasq
-                var dhcpRangeStart = this.calcDHCPRangeStart(subnet)
+                var dhcpRangeStart = this.calcDHCPRangeStart(block)
                 if(dhcpRangeStart < 0) {
                     return callback("Could not calculate DHCP range start index");
                 }
@@ -343,6 +346,7 @@ var Query = function(db, config) {
             return;
         }
 
+        console.log("got:", node);
         this.assign(node, function(err, node) {
             if(err) {
                 callback("assign error: " + err);
