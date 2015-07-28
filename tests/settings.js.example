@@ -1,0 +1,6 @@
+
+module.exports = {
+    url: "http://localhost:3000,
+    username: "admin",
+    password: "my_password"
+}
