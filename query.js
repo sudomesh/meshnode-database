@@ -20,32 +20,12 @@ var Query = function(db, config) {
         this.subnets_reserved.push(new Netmask(config.subnets_reserved[i]));
     }
 
-
-    this.indexes = ['subnet_highest_first'];
-
     this.db = db;
 
     this.init = function(reIndex, callback) {
 
-        this.maxIP = this.ipToNumber('255.255.255.255');
+        callback();
 
-        if(reIndex) {
-            this.dropIndexes(this.indexes, function(err) {
-                if(err) {
-                    callback(err);
-                    return;
-                }
-                this.ensureIndexes(function(err) {
-                    if(err) {
-                        callback(err)
-                        return;
-                    }
-                    callback();
-                }.bind(this));
-            }.bind(this));
-        } else {
-            this.ensureIndexes(callback);            
-        }
     };
 
     this.dropIndexes = function(indexes, callback, i) {
@@ -64,25 +44,6 @@ var Query = function(db, config) {
         }.bind(this));
     };
 
-    this.ensureIndexes = function(callback) {
-        this.ensureSubnetIndex(callback);
-    };
-
-    this.ensureSubnetIndex = function(callback) {
-        this.db.ensureIndex('subnet_highest_first', 'property', function(key, node, emit) {
-            if(!node) {
-                return;
-            }
-            if(node.type != 'node') {
-                return;
-            }
-            if(!node.mesh_subnet_ipv4) {
-                return;
-            }
-
-            emit(this.maxIP - this.subnetToNumber(node.open_subnet_ipv4));
-        }.bind(this), callback);
-    };
 
     this.isValidSubnet = function(subnet) {
         if(typeof subnet == 'object') {
@@ -138,17 +99,29 @@ var Query = function(db, config) {
     };
 
     this.getNodeWithHighestSubnet = function(callback) {
-        var keys = [];
-        this.db.indexes['subnet_highest_first'].createIndexStream({
-            limit: 10
+        var highest = 0;
+        var highest_key;
+        var cur;
+        this.db.createReadStream({
         }).on('data', function(data) {
-            keys.push(data.value);
-        }.bind(this)).on('close', function(data) {
-            if(keys.length < 1) {
+            var node = data.value;
+            if(!node || node.type != 'node' || !node.open_subnet_ipv4) {
+                return;
+            }
+
+            cur = this.subnetToNumber(node.open_subnet_ipv4);
+            console.log(cur);
+            if(cur > highest) {
+                highest = cur;
+                highest_key = data.key;
+            }
+              
+        }.bind(this)).on('end', function(data) {
+            if(!highest_key) {
                 callback(null, null);
                 return;
             }
-            this.db.get(keys[0], callback);
+            this.db.get(highest_key, callback);
         }.bind(this));
     };
 
@@ -160,6 +133,7 @@ var Query = function(db, config) {
                 return;
             }
 
+            console.log("Highest: ", node);
             var subnet;
             if(!node) {
                 subnet = this.subnet.base + '/' + this.config.per_node_bitmask;
@@ -172,6 +146,7 @@ var Query = function(db, config) {
                 callback("Could not assign unique subnet: None available");
                 return;
             }
+            console.log("Next subnet: ", subnet);
             callback(null, subnet);
         }.bind(this));
     };

@@ -14,8 +14,6 @@ var util = require('util');
 var path = require('path');
 var crypto = require('crypto');
 var express = require('express');
-var levelQuery = require('level-queryengine');
-var jsonqueryEngine = require('jsonquery-engine');
 var pairs = require('pairs');
 var levelup = require('levelup');
 
@@ -189,8 +187,7 @@ function createFakeData(q) {
 };
 
 
-var db = levelQuery(levelup('meshnode.db', {encoding: 'json'}));
-db.query.use(jsonqueryEngine());
+var db = levelup('meshnode.db', {valueEncoding: 'json'});
 
 var q = new query.Query(db, config);
 
