@@ -1,0 +1,74 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:          meshnode-database
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: psy running meshnode-database
+# Description:       psy running meshnode-database
+### END INIT INFO
+#
+
+# Source function library.
+. /lib/lsb/init-functions
+
+runAsUser="meshnode"
+appName="meshnode-database"
+workingDir="/home/${runAsUser}/meshnode-database"
+logFile="/home/${runAsUser}/meshnode-database.log"
+nodeCommand="node"
+nodeApp="${workingDir}/database.js"
+runnerApp="psy"
+
+# set this to an empty string if you're not using nvm
+cmdPrefix="export NVM_DIR=/home/\$USER/.nvm; . /home/\$USER/.nvm/nvm.sh;"
+
+start() {
+  echo "Starting $nodeApp"
+
+  cd $workingDir
+  cmd="$cmdPrefix $runnerApp start --logfile $logFile --name $appName -- $nodeCommmand $nodeApp"
+  su $runAsUser -l -c "$cmd"
+
+  RETVAL=$?
+}
+
+restart() {
+  echo -n "Restarting $appName"
+  su $runAsUser -l -c "$cmdPrefix $runnerApp restart $appName"
+  RETVAL=$?
+}
+
+stop() {
+  echo -n "Shutting down $appName"
+  su $runAsUser -l -c "$cmdPrefix $runnerApp stop $appName"
+  RETVAL=$?
+}
+
+status() {
+  echo -n "Status $appName"
+  su $runAsUser -l -c "$cmdPrefix $runnerApp list"
+  RETVAL=$?
+}
+
+case "$1" in
+   start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+   status)
+        status
+       ;;
+   restart)
+        restart
+        ;;
+        *)
+       echo "Usage:  {start|stop|status|restart}"
+       exit 1
+        ;;
+esac
+exit $RETVAL
