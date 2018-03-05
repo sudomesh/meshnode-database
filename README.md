@@ -83,6 +83,7 @@ cp settings.example settings.js
 4. Modify `settings.js` with the plain text admin password you created in step 6 of the previous section 
 
 5. With the meshnode database running and available online, run the `create_node.js` script either with `./create_node.js` or `node create_node.js` (note: I had to delete the first line that declares the environment for this to work)
+
 6.On the client you should see an output that you successfully received an IP address, like so,
 ```
 Creating node meshnode-database url: http://165.227.44.64:3000/nodes
@@ -118,21 +119,6 @@ Next subnet:  101.64.2.0/26
 # Security
 
 You should only ever run this through a reverse proxy with SSL enabled. 
-
-# Prerequisites 
-
-This is node.js app. On Debian-based systems you can install node.js with:
-
-```
-sudo aptitude install nodejs
-```
-
-Then install the required node.js modules with:
-
-```
-cd node-database/
-npm install
-```
 
 # Running 
 
