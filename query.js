@@ -292,27 +292,23 @@ var Query = function(db, config) {
     };
 
     this.getNode = function(id, callback) {
-
-        var nodes = [];
-        this.db.query({$and: [{type: 'node'}, {id: id}]}).on('data', function(node) {
-
-            nodes.push(node);
-        }.bind(this)).on('end', function() {
-            if(nodes.length <= 0) {
-                callback("no nodes exist with specified id");
-                return;
-            } else {
-                callback(null, nodes[0]);
+        this.db.get(id, function (err, node) {
+            if(err) {
+                if(err.notFound) {
+                    callback("no nodes exist with specified id");
+                    return;
+                }
+                return callback(err);
             }
-        }.bind(this)).on('stats', function(stat) {
-            // do nothing
-        }.bind(this)).on('error', function(err) {
-            callback(err);
-            return;
-        }.bind(this)).on('close', function(stat) {
-            // do nothing
-        }.bind(this));
-    },
+
+            if(node.type !== 'node') {
+                callback("requested id exists, but it's not a node");
+                return;
+            }
+
+            callback(null, node);
+        });
+    };
     
     this.createNode = function(node, callback) {
 
