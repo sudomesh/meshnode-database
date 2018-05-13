@@ -129,7 +129,6 @@ npm start
 or
 
 ```
-cd node-database/
 npm link # puts `sudomeshdb` into your path
 sudomeshdb
 ```

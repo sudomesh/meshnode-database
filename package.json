@@ -1,11 +1,11 @@
 {
-  "name": "node-database",
+  "name": "meshnode-database",
   "version": "0.0.1",
   "description": "A minimal mesh node database with an admin web gui and a RESTful json API.",
   "main": "database.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sudomesh/node-database.git"
+    "url": "https://github.com/sudomesh/meshnode-database.git"
   },
   "scripts": {
     "start": "node database.js"
