@@ -7,6 +7,12 @@
     "type": "git",
     "url": "https://github.com/sudomesh/node-database.git"
   },
+  "scripts": {
+    "start": "node database.js"
+  },
+  "bin": {
+    "sudomeshdb": "./database.js"
+  },
   "keywords": [
     "mesh",
     "database",

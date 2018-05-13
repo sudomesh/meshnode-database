@@ -123,7 +123,15 @@ You should only ever run this through a reverse proxy with SSL enabled.
 # Running 
 
 ```
-./database.js
+npm start
+```
+
+or
+
+```
+cd node-database/
+npm link # puts `sudomeshdb` into your path
+sudomeshdb
 ```
 
 # Production
