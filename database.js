@@ -118,14 +118,21 @@ app.get('/nodes/:id', adminAuth, function(req, res){
 // create node
 app.post('/nodes', deployerAuth, function(req, res){
     console.log('Creating node');
-    if(!req.body.data) {
-        error(res, "data parameter not set or empty");
-        return;
-    }
-    var data = JSON.parse(req.body.data);
-    if(!data) {
-        error(res, "data parameter is not valid json");
-        return;
+    var data;
+    if(req.headers['content-type'] === 'application/json') {
+        // a JSON POST is acceptable
+        data = req.body;
+    } else {
+        // a url-encoded POST with data=JSON is also acceptable
+        if(!req.body.data) {
+            error(res, "data parameter not set or empty");
+            return;
+        }
+        data = JSON.parse(req.body.data);
+        if(!data) {
+            error(res, "data parameter is not valid json");
+            return;
+        }
     }
     q.createNode(data, function(err, node) {
         if(err) {
@@ -143,14 +150,21 @@ app.put('/nodes/:id', deployerAuth, function(req, res){
         error(res, "node id must be specified in request");
         return;
     }
-    if(!req.body.data) {
-        error(res, "data parameter not set or empty");
-        return;
-    }
-    var data = JSON.parse(req.body.data);
-    if(!data) {
-        error(res, "data parameter is not valid json");
-        return;
+    var data;
+    if(req.headers['content-type'] === 'application/json') {
+        // a JSON POST is acceptable
+        data = req.body;
+    } else {
+        // a url-encoded POST with data=JSON is also acceptable
+        if(!req.body.data) {
+            error(res, "data parameter not set or empty");
+            return;
+        }
+        data = JSON.parse(req.body.data);
+        if(!data) {
+            error(res, "data parameter is not valid json");
+            return;
+        }
     }
     q.updateNode(data, function(err, node) {
         if(err) {
