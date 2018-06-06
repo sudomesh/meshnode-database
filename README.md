@@ -1,6 +1,6 @@
 # About 
 
-This is an minimal database for assigning and tracking information about mesh nodes, such as contact information for node owners and assigned static IP addresses.
+This is a minimal database for assigning and tracking information about mesh nodes, such as contact information for node owners and assigned static IP addresses.
 
 # Usage
 

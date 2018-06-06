@@ -331,7 +331,12 @@ var Query = function(db, config) {
                 callback("Cannot create node without an id");
                 return;
             }
-
+            // if debug flag is set, don't actually create node
+            if(node.debug) {
+                callback(null, node);
+                return;
+            }
+            
             this.db.put(node.id, node, function(err) {
                 if(err) {
                     callback("error creating node in db: " + err);
