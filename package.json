@@ -29,5 +29,11 @@
     "netmask": "^1.0.5",
     "node-uuid": "~1.4.1",
     "pairs": "~0.0.2"
+  },
+  "devDependencies": {
+    "request": "^2.87.0"
+  },
+  "engines": {
+    "node": "< 10"
   }
 }
