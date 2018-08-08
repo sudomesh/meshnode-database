@@ -2,7 +2,7 @@
 module.exports = {
   salt: 'CHANGEME', // you should change this to a randomly generated salt
   hostname: 'localhost',
-  port: 3000,
+  port: process.env.PORT || 3000,
 
   subnet: '100.64.0.0/10', // the mesh subnet
   subnets_reserved: ['100.64.0.0/24', '100.64.1.0/24'], // do not assign subnets in this range

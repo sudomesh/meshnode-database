@@ -1,6 +1,7 @@
 {
   "name": "meshnode-database",
   "scripts": {
+    "postdeploy": "cp config.js.example config.js",
   },
   "env": {
   },
